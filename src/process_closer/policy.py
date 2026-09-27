@@ -31,9 +31,17 @@ class TargetPolicy:
         publisher: str | None = None,
         copyright: str | None = None,
     ) -> Target:
-        if not value and not path:
-            raise InvalidTargetError("укажите имя процесса или --path")
-        name = self._name(value) if value else self._name(PurePath(path).name)
+        if not value and not path and not sha256 and not publisher and not copyright:
+            raise InvalidTargetError(
+                "укажите имя процесса, --path или хотя бы один фильтр"
+            )
+        name = (
+            self._name(value)
+            if value
+            else self._name(PurePath(path).name)
+            if path
+            else None
+        )
         target_path = self._path(path) if path else None
         digest = sha256.casefold() if sha256 else None
         if digest and not re.fullmatch(r"[0-9a-f]{64}", digest):

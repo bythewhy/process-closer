@@ -52,6 +52,13 @@ def test_rejects_empty_copyright() -> None:
         TargetPolicy().create("app.exe", copyright="  ")
 
 
+def test_allows_copyright_without_process_name() -> None:
+    target = TargetPolicy().create(copyright="ItzIceHere")
+
+    assert target.name is None
+    assert target.copyright == "ItzIceHere"
+
+
 def test_requires_absolute_path() -> None:
     with pytest.raises(InvalidTargetError):
         TargetPolicy().create(path="app.exe")
