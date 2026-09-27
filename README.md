@@ -81,12 +81,16 @@ process-closer --path "C:\Tools\RedLotus\RedLotusAltChecker.exe" `
     --sha256 "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 process-closer --path "C:\Tools\RedLotus\RedLotusAltChecker.exe" `
     --publisher "Red Lotus Software"
+process-closer --path "C:\Tools\RedLotus\RedLotusAltChecker.exe" `
+    --copyright "Copyright (C) 2026 ItzIceHere"
 ```
 
 `--path` сравнивает нормализованный полный путь. `--sha256` проверяет содержимое
 файла перед завершением и поэтому меняется после обновления приложения.
 `--publisher` проверяет издателя сертификата Authenticode через PowerShell и
-доступен на Windows. Фильтры можно использовать без позиционного имени процесса.
+доступен на Windows. `--copyright` ищет указанную строку в поле Copyright из
+свойств исполняемого файла и тоже доступен на Windows. Фильтры можно использовать
+без позиционного имени процесса.
 
 В Windows `--hide` запускает отдельный фоновый экземпляр через `pythonw.exe`,
 возвращает приглашение командной строки и убирает окно консоли. При запуске уже

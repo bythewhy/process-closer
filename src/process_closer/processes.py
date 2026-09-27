@@ -15,6 +15,7 @@ class ProcessScanner:
         self._owner = psutil.Process(self._pid).username().casefold()
         self._hash_cache: dict[tuple[str, int, int], str | None] = {}
         self._publisher_cache: dict[tuple[str, int, int], str | None] = {}
+        self._copyright_cache: dict[tuple[str, int, int], str | None] = {}
 
     def find(self, target: Target) -> list[ProcessRef]:
         found: list[ProcessRef] = []
@@ -38,7 +39,7 @@ class ProcessScanner:
         return found
 
     def _matches_filters(self, process: psutil.Process, target: Target) -> bool:
-        if not target.path and not target.sha256 and not target.publisher:
+        if not target.path and not target.sha256 and not target.publisher and not target.copyright:
             return True
         try:
             executable = os.path.normcase(os.path.abspath(process.exe()))
@@ -48,7 +49,9 @@ class ProcessScanner:
             return False
         if target.sha256 and self._file_hash(executable) != target.sha256:
             return False
-        return not target.publisher or self._publisher(executable, target.publisher)
+        if target.publisher and not self._publisher(executable, target.publisher):
+            return False
+        return not target.copyright or self._copyright(executable, target.copyright)
 
     def _file_hash(self, path: str) -> str | None:
         key = self._file_key(path)
@@ -77,6 +80,30 @@ class ProcessScanner:
             "$certificate = (Get-AuthenticodeSignature -LiteralPath $args[0]).SignerCertificate; "
             "if ($certificate) { $certificate.Subject }"
         )
+        try:
+            result = subprocess.run(
+                ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command, path],
+                capture_output=True,
+                text=True,
+                timeout=3,
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return None
+        return result.stdout.strip() or None
+
+    def _copyright(self, path: str, expected: str) -> bool:
+        key = self._file_key(path)
+        value = self._copyright_cache.get(key)
+        if key not in self._copyright_cache:
+            value = self._read_copyright(path)
+            self._copyright_cache[key] = value
+        return bool(value and expected.casefold() in value.casefold())
+
+    def _read_copyright(self, path: str) -> str | None:
+        if os.name != "nt":
+            return None
+        command = "$item = Get-Item -LiteralPath $args[0]; $item.VersionInfo.LegalCopyright"
         try:
             result = subprocess.run(
                 ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command, path],

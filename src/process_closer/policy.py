@@ -29,6 +29,7 @@ class TargetPolicy:
         path: str | None = None,
         sha256: str | None = None,
         publisher: str | None = None,
+        copyright: str | None = None,
     ) -> Target:
         if not value and not path:
             raise InvalidTargetError("укажите имя процесса или --path")
@@ -40,7 +41,10 @@ class TargetPolicy:
         owner = publisher.strip() if publisher else None
         if publisher is not None and not owner:
             raise InvalidTargetError("--publisher не может быть пустым")
-        target = Target(name, target_path, digest, owner)
+        rights = copyright.strip() if copyright else None
+        if copyright is not None and not rights:
+            raise InvalidTargetError("--copyright не может быть пустым")
+        target = Target(name, target_path, digest, owner, rights)
         if target.key in self._protected:
             raise InvalidTargetError(f"нельзя выбрать защищённый процесс: {target.name}")
         return target

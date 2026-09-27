@@ -7,6 +7,7 @@ class Target:
     path: str | None = None
     sha256: str | None = None
     publisher: str | None = None
+    copyright: str | None = None
 
     @property
     def key(self) -> str | None:

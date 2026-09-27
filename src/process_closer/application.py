@@ -119,6 +119,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="часть имени издателя цифровой подписи Windows",
     )
     parser.add_argument(
+        "--copyright",
+        metavar="ЗНАЧЕНИЕ",
+        help="часть строки Copyright в свойствах файла Windows",
+    )
+    parser.add_argument(
         "--interval",
         type=parse_seconds,
         default=0.5,
@@ -173,7 +178,9 @@ def run(argv: list[str] | None = None) -> int:
         if args.once:
             parser.error("нельзя регистрировать задачу с параметром --once")
         try:
-            TargetPolicy().create(args.process, args.path, args.sha256, args.publisher)
+            TargetPolicy().create(
+                args.process, args.path, args.sha256, args.publisher, args.copyright
+            )
             scheduler.install(raw_args)
         except (InvalidTargetError, TaskSchedulerError) as error:
             parser.error(str(error))
@@ -184,7 +191,9 @@ def run(argv: list[str] | None = None) -> int:
     if not 0 <= args.timeout <= 60:
         parser.error("--timeout должен быть от 0 до 60")
     try:
-        target = TargetPolicy().create(args.process, args.path, args.sha256, args.publisher)
+        target = TargetPolicy().create(
+            args.process, args.path, args.sha256, args.publisher, args.copyright
+        )
     except InvalidTargetError as error:
         parser.error(str(error))
 

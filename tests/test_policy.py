@@ -37,12 +37,19 @@ def test_accepts_optional_filters() -> None:
         path=os.path.abspath("app.exe"),
         sha256="A" * 64,
         publisher="Example Corp",
+        copyright="Copyright (C) 2026 Example",
     )
 
     assert target.name == "app.exe"
     assert target.path == os.path.normcase(os.path.abspath("app.exe"))
     assert target.sha256 == "a" * 64
     assert target.publisher == "Example Corp"
+    assert target.copyright == "Copyright (C) 2026 Example"
+
+
+def test_rejects_empty_copyright() -> None:
+    with pytest.raises(InvalidTargetError):
+        TargetPolicy().create("app.exe", copyright="  ")
 
 
 def test_requires_absolute_path() -> None:
