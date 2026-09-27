@@ -1,8 +1,10 @@
+import ctypes
 import hashlib
 import os
 import subprocess
 import time
 from collections.abc import Iterable
+from ctypes import POINTER, byref, c_uint, c_ushort, c_void_p, c_wchar_p, cast, create_string_buffer
 
 import psutil
 
@@ -103,18 +105,37 @@ class ProcessScanner:
     def _read_copyright(self, path: str) -> str | None:
         if os.name != "nt":
             return None
-        command = "$item = Get-Item -LiteralPath $args[0]; $item.VersionInfo.LegalCopyright"
         try:
-            result = subprocess.run(
-                ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command, path],
-                capture_output=True,
-                text=True,
-                timeout=3,
-                check=False,
-            )
-        except (OSError, subprocess.SubprocessError):
+            version = ctypes.windll.version
+            handle = c_uint()
+            size = version.GetFileVersionInfoSizeW(path, byref(handle))
+            if not size:
+                return None
+            data = create_string_buffer(size)
+            if not version.GetFileVersionInfoW(path, 0, size, data):
+                return None
+
+            translations = c_void_p()
+            length = c_uint()
+            if not version.VerQueryValueW(
+                data, r"\VarFileInfo\Translation", byref(translations), byref(length)
+            ):
+                return None
+            pairs = cast(translations, POINTER(c_ushort * (length.value // 2))).contents
+            for offset in range(0, len(pairs), 2):
+                block = (
+                    rf"\StringFileInfo\{pairs[offset]:04x}"
+                    rf"{pairs[offset + 1]:04x}\LegalCopyright"
+                )
+                value = c_void_p()
+                value_length = c_uint()
+                if version.VerQueryValueW(
+                    data, block, byref(value), byref(value_length)
+                ) and value.value:
+                    return cast(value, c_wchar_p).value.strip() or None
+        except (AttributeError, OSError, ValueError):
             return None
-        return result.stdout.strip() or None
+        return None
 
     def _file_key(self, path: str) -> tuple[str, int, int]:
         try:

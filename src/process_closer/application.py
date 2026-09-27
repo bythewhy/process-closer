@@ -219,7 +219,7 @@ def run(argv: list[str] | None = None) -> int:
         report,
     )
     if not args.hide:
-        label = target.name or target.path
+        label = target.name or target.path or "подходящие процессы"
         print(f"Ожидание {label}. Для остановки нажмите Ctrl+C")
     try:
         monitor.run(target, once=args.once)
