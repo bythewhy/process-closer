@@ -16,13 +16,17 @@ Set-Location $root
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
+$main = Join-Path $root "main.py"
+if ((Get-Item -LiteralPath $main).Length -eq 0) {
+    throw "Файл main.py пустой после сборки"
+}
 
 $version = "1.0.0"
 $release = Join-Path $root "release\process-closer-$version-windows"
 $archive = Join-Path $root "release\process-closer-$version-windows.zip"
 New-Item -ItemType Directory -Force -Path $release | Out-Null
 Copy-Item -Path (Join-Path $root "dist\process-closer\*") -Destination $release -Recurse -Force
-Copy-Item -LiteralPath (Join-Path $root "main.py") -Destination $release -Force
+Copy-Item -LiteralPath $main -Destination $release -Force
 Copy-Item -LiteralPath (Join-Path $root "README.md") -Destination $release -Force
 Copy-Item -LiteralPath (Join-Path $root "RELEASE.md") -Destination $release -Force
 Copy-Item -LiteralPath (Join-Path $root "LICENSE") -Destination $release -Force
