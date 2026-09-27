@@ -52,6 +52,8 @@ class TaskScheduler:
         settings = definition.Settings
         settings.Enabled = True
         settings.StartWhenAvailable = True
+        settings.DisallowStartIfOnBatteries = False
+        settings.StopIfGoingOnBatteries = False
         settings.RestartCount = 10
         settings.RestartInterval = "PT1M"
         settings.ExecutionTimeLimit = "PT0S"
