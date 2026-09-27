@@ -163,10 +163,11 @@ def run(argv: list[str] | None = None) -> int:
     scheduler = TaskScheduler()
     if args.remove_task:
         try:
-            scheduler.remove()
+            removed = scheduler.remove()
         except TaskSchedulerError as error:
             parser.error(str(error))
-        print("Задача Process Closer удалена")
+        message = "Задача Process Closer удалена" if removed else "Задача Process Closer не найдена"
+        print(message)
         return 0
     if args.install_task:
         if args.once:

@@ -64,8 +64,9 @@ class TaskScheduler:
             None,
             3,
         )
+        folder.GetTask(self.name).Run(None)
 
-    def remove(self) -> None:
+    def remove(self) -> bool:
         try:
             import win32com.client
         except ImportError as error:
@@ -77,6 +78,11 @@ class TaskScheduler:
         scheduler.Connect()
         folder = scheduler.GetFolder("\\")
         try:
+            folder.GetTask(self.name)
+        except Exception:
+            return False
+        try:
             folder.DeleteTask(self.name, 0)
         except Exception as error:
             raise TaskSchedulerError(f"не удалось удалить задачу «{self.name}»") from error
+        return True
