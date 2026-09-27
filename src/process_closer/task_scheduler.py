@@ -55,7 +55,7 @@ class TaskScheduler:
         settings.DisallowStartIfOnBatteries = False
         settings.StopIfGoingOnBatteries = False
         settings.RestartCount = 10
-        settings.RestartInterval = "PT1M"
+        settings.RestartInterval = "PT1S"
         settings.ExecutionTimeLimit = "PT0S"
 
         folder.RegisterTaskDefinition(
